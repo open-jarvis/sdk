@@ -9,19 +9,16 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="open-jarvis", # Replace with your own username
-    version="0.1.7",
+    name="open-jarvis-sdk", # Replace with your own username
+    version="0.0.1",
     author="Philipp Scheer",
-    author_email="scheer28philipp@gmail.com",
-    description="Helper classes for Jarvis applications",
+    author_email="hi@fipsi.at",
+    description="Software Development Kit for varius AI tasks including Intent Parsing & more",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/open-jarvis",
+    url="https://github.com/open-jarvis/sdk",
     packages=setuptools.find_packages(),
     install_requires=[
-        'paho.mqtt; platform_machine == "armv7l"',
-        'couchdb2',
-        'python-dateutil'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
