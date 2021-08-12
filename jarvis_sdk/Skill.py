@@ -3,7 +3,6 @@ Copyright (c) 2021 Philipp Scheer
 """
 
 
-import time
 import random
 
 
@@ -99,6 +98,33 @@ class Skill():
         raise Exception("Endpoint not found")
 
 
+class SkillResponses():
+    """Class to handle and format responses for requests. Allows string formatting in arrays"""
+
+    def __init__(self, response_array: list) -> None:
+        """Initalize a new Object with a list of possible responses"""
+        self.responses = response_array
+
+    def apply_values(self, value_dict: dict):
+        def _apply_values(sentence: str):
+            for key, value in value_dict.items():
+                sentence.replace(f"${key}", value)
+                # turns "$Hello Buddy", { Hello: Hi } into -> "Hi Buddy"
+            return sentence
+        self.responses = list(map(_apply_values, self.responses))
+
+    @staticmethod
+    def load(dict_of_responses: dict):
+        def _handle_dict(d: dict):
+            for k, v in d.items():
+                if isinstance(v, dict):
+                    d[k] = _handle_dict(v)
+                elif isinstance(v, list):
+                    d[k] = SkillResponses(v)
+                else:
+                    d[k] = v
+            return d
+        return _handle_dict(dict_of_responses)
 
 
 class CapturedIntentData:
