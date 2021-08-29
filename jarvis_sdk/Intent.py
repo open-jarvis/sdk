@@ -6,6 +6,7 @@ Copyright (c) 2021 Philipp Scheer
 import json
 import random
 import traceback
+from typing import Any
 from .Entity import Entity, IEntity
 
 
@@ -444,9 +445,12 @@ class IntentSlotsContainer:
     def __getattr__(self, key: str):
         for slot in self._slots:
             if slot.get("slotName", None) == key:
-                entity: IEntity = Entity._entities.get(slot.get("entity", None), None)
-                if entity is None:
+                AnyEntity: IEntity = Entity._entities.get(slot.get("entity", None), None)
+                if AnyEntity is None:
                     return slot.get("value", {}).get("value", None)
+                entity = AnyEntity()
+                entity._set_slot_data(slot)
+                print("entity", entity, entity.resolve)
                 return entity.resolve()
         return None
 
