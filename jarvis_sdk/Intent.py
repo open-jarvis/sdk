@@ -304,9 +304,11 @@ class IntentResponse():
 class ResolvedIntentResponse():
     """Resolved intent responses"""
     def __init__(self, text: IntentTextResponse=None, speech: IntentSpeechResponse=None, card: IntentCardResponse=None) -> None:
-        assert text   is None or isinstance(text,   IntentTextResponse),   "text has to be None or instance of IntentTextResponse"
-        assert speech is None or isinstance(speech, IntentSpeechResponse), "speech has to be None or instance of IntentSpeechResponse"
-        assert card   is None or isinstance(card,   IntentCardResponse),   "text has to be None or instance of IntentCardResponse"
+        assert text   is None or isinstance(text,   str),  f"text has to be None or instance of str, got {text.__class__.__name__}"
+        # TODO: audio:
+        assert speech is None or isinstance(speech, str),  f"speech has to be None or instance of str, got {speech.__class__.__name__}"
+        # TODO: what to do here?
+        assert card   is None or isinstance(card, object), f"text has to be None or instance of object, got {card.__class__.__name__}"
         self.text = text
         self.speech = speech
         self.card = card
@@ -336,10 +338,9 @@ class CapturedIntentData:
         ```json
         {
             "input": "How's the weather in New York?",
-            "intent": {
-                "intentName": "Weather$getWeather",
-                "probability": 0.963054744983951
-            },
+            "skill": "Weather",
+            "intent": "getWeather",
+            "probability": 0.963054744983951
             "slots": [
                 {
                     "range": {
@@ -353,6 +354,7 @@ class CapturedIntentData:
                     },
                     "entity": "city",
                     "slotName": "city_name"
+                    "resolved": "New York"
                 }
             ]
         }
@@ -360,7 +362,7 @@ class CapturedIntentData:
         """
         self.data = data
         assert isinstance(self.data, dict), "Data does not have required format: dict"
-        for k in ["input", "intent", "slots"]:
+        for k in ["input", "skill", "intent", "probability", "slots"]:
             assert k in self.data, f"Data does not have required format: '{k}' missing"
 
     def to_json(self):
@@ -376,18 +378,14 @@ class CapturedIntentData:
     def skill(self) -> str:
         """Get the skill of the parsed intent, else `None`  
         Example: `"Weather"`"""
-        intent = self.data.get("intent", {}).get("intentName", None)
-        if intent is None: return None
-        return intent.split("$")[0]
+        return self.data.get("skill", None)
 
     @property
     def intent(self) -> str:
         """Get the skill of the parsed intent, else `None`  
         Example: `"getWeather"`"""
-        intent = self.data.get("intent", {}).get("intentName", None)
-        if intent is None: return None
-        return intent.split("$")[1]
-    
+        return self.data.get("intent", None)
+
     @property
     def slots(self) -> list:
         """Get a list of slots of the parsed intent, else `[]`  
@@ -405,6 +403,7 @@ class CapturedIntentData:
             },
             "entity": "city",
             "slotName": "city_name"
+            "resolved": "New York"
         }]
         ```
         """
@@ -432,7 +431,7 @@ class CapturedIntentData:
         """
         for slot in self.slots:
             if slot.get("slotName", None) == slot_name:
-                return slot.get("value", {}).get("value", default)
+                return slot.get("resolved", slot.get("value", {}).get("value", None))
         return default
 
 
@@ -445,12 +444,13 @@ class IntentSlotsContainer:
     def __getattr__(self, key: str):
         for slot in self._slots:
             if slot.get("slotName", None) == key:
+                if slot.get("resolved", None) is not None:
+                    return slot.get("resolved", None)
                 AnyEntity: IEntity = Entity._entities.get(slot.get("entity", None), None)
                 if AnyEntity is None:
                     return slot.get("value", {}).get("value", None)
                 entity = AnyEntity()
                 entity._set_slot_data(slot)
-                print("entity", entity, entity.resolve)
                 return entity.resolve()
         return None
 
