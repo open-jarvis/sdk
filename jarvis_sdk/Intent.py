@@ -3,7 +3,6 @@ Copyright (c) 2021 Philipp Scheer
 """
 
 
-import json
 import random
 import traceback
 from typing import Any
@@ -170,6 +169,9 @@ class IntentTextResponse(IIntentResponse):
         self.responses = list(map(_apply_values, self.responses))
         return self
 
+    def __dict__(self):
+        return self.responses
+
     @staticmethod
     def load(dict_of_responses: dict):
         """Load a dictionary of responses and convert all arrays to instances of IntentTextResponse  
@@ -221,11 +223,17 @@ class IntentSpeechResponse(IIntentResponse):
     def __init__(self) -> None:
         super().__init__()
         self.responses = []
+    
+    def __dict__(self):
+        return self.responses
 
 
 class IntentCardResponse(IIntentResponse):
     def __init__(self) -> None:
         super().__init__()
+    
+    def __dict__(self):
+        return []
 
 
 
@@ -284,6 +292,13 @@ class IntentResponse():
             "card": self.card,
         })
     
+    def __dict__(self):
+        return {
+            "text": self.text if self.text is None else self.text.__dict__(),
+            "speech": self.speech if self.speech is None else self.speech.__dict__(),
+            "card": self.card if self.card is None else self.card.__dict__(),
+        }
+
     @classmethod
     def single_text(cls, txt):
         return cls(text=IntentTextResponse([txt]))
@@ -321,7 +336,7 @@ class ResolvedIntentResponse():
         }
 
     def to_json(self):
-        return json.dumps(self.__dict__())
+        return self.__dict__()
 
     @classmethod
     def from_json(cls, obj):
@@ -367,7 +382,7 @@ class CapturedIntentData:
 
     def to_json(self):
         """Export CapturedIntentData to json string"""
-        return json.dumps(self.data)
+        return self.data
     
     @classmethod
     def from_json(cls, data):
@@ -442,17 +457,25 @@ class IntentSlotsContainer:
         self._slots = slots
     
     def __getattr__(self, key: str):
-        for slot in self._slots:
-            if slot.get("slotName", None) == key:
-                if slot.get("resolved", None) is not None:
-                    return slot.get("resolved", None)
-                AnyEntity: IEntity = Entity._entities.get(slot.get("entity", None), None)
-                if AnyEntity is None:
+        try:
+            for slot in self._slots:
+                print("DEBUG", slot)
+                if slot.get("slotName", None) == key:
+                    if slot.get("resolved", None) is not None:
+                        print("DEBUG ALREADY RESOLVED")
+                        return slot.get("resolved", None)
+                    AnyEntity: IEntity = Entity._entities.get(slot.get("entity", None), None)
+                    if AnyEntity is None:
+                        return slot.get("value", {}).get("value", None)
+                    entity = AnyEntity()
+                    entity._set_slot_data(slot)
+                    return entity.resolve()
+            return None
+        except Exception:
+            for slot in self._slots:
+                if slot.get("slotName", None) == key:
                     return slot.get("value", {}).get("value", None)
-                entity = AnyEntity()
-                entity._set_slot_data(slot)
-                return entity.resolve()
-        return None
+            return None
 
     def __list__(self):
         return self._slots

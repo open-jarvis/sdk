@@ -17,4 +17,5 @@
 
 from .Intent import Intent, IntentResponse, ResolvedIntentResponse, IIntentResponse, IntentTextResponse, IntentSpeechResponse, IntentCardResponse, CapturedIntentData, IntentSlotsContainer
 from .Entity import Entity, IEntity
+from .TestSuite import TestSuite
 from .Api import Api
