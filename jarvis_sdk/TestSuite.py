@@ -32,7 +32,7 @@ class TestSuite():
         printf("DEBUG OUTPUT")
         res = method(data)
         printf("RESULT")
-        print(res.__dict__())
+        print(res.__dict__() if res else None)
         printf("DONE")
         
 

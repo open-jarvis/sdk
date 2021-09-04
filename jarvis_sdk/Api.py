@@ -12,7 +12,13 @@ class Api():
     @staticmethod
     def endpoint(endpoint, post_data={}):
         """Call an endpoint of the official Jarvis API"""
-        return Api.post(f"{Api.BASE_URL}{endpoint}", post_data=post_data)
+        try:
+            result = Api.post(f"{Api.BASE_URL}{endpoint}", post_data=post_data)
+        except requests.exceptions.ConnectionError:
+            return ApiErrorResponse({}, "API_UNREACHABLE")
+        if result.get("success", None):
+            return result["result"]
+        return ApiErrorResponse(result)
 
     @staticmethod
     def post(url, post_data={}):
@@ -23,3 +29,16 @@ class Api():
     def get(url):
         """Perform a HTTP GET request to given `url`"""
         return requests.get(url).json()
+
+
+class ApiErrorResponse():
+    def __init__(self, raw_response: dict, error_code: str = "UNKNOWN_ERROR") -> None:
+        self.r = raw_response
+        self.e = error_code
+    
+    def __bool__(self):
+        return False
+    
+    @property
+    def error(self):
+        return self.r.get("error", self.r.get("result", self.e))

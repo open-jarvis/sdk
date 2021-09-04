@@ -5,7 +5,6 @@ Copyright (c) 2021 Philipp Scheer
 
 import random
 import traceback
-from typing import Any
 from .Entity import Entity, IEntity
 
 
@@ -163,7 +162,7 @@ class IntentTextResponse(IIntentResponse):
         ```"""
         def _apply_values(sentence: str):
             for key, value in value_dict.items():
-                sentence.replace(f"${key}", value)
+                sentence = sentence.replace(f"${key}", value)
                 # turns "$Hello Buddy", { Hello: Hi } into -> "Hi Buddy"
             return sentence
         self.responses = list(map(_apply_values, self.responses))
@@ -459,10 +458,8 @@ class IntentSlotsContainer:
     def __getattr__(self, key: str):
         try:
             for slot in self._slots:
-                print("DEBUG", slot)
                 if slot.get("slotName", None) == key:
                     if slot.get("resolved", None) is not None:
-                        print("DEBUG ALREADY RESOLVED")
                         return slot.get("resolved", None)
                     AnyEntity: IEntity = Entity._entities.get(slot.get("entity", None), None)
                     if AnyEntity is None:
