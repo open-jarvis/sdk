@@ -15,6 +15,8 @@
 * [TestSuite](jarvis_sdk/TestSuite.html)
 * [Session](jarvis_sdk/Session.html)
 * [Api](jarvis_sdk/Api.html)
+* [Connection](jarvis_sdk/Connection.html)
+    * [Highway](jarvis_sdk/Connection.html#Highway)
 """
 
 
@@ -23,6 +25,7 @@ from .Entity import Entity, IEntity
 from .TestSuite import TestSuite
 from .Session import Session
 from .Api import Api
+from .Connection import Connection, Highway
 
 # TODO: add more sessions
 session = Session()
