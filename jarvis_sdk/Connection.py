@@ -17,7 +17,7 @@ from threading import Thread
 class Connection:
     _requests = {}
 
-    def __init__(self, device_id: str, host: str = "jarvis.fipsi.at", port: int = 5522) -> None:
+    def __init__(self, device_id: str, host: str = "jarvis.fipsi.at", port: int = 5522, debug: bool = False) -> None:
         self.id = device_id
         self._h = host
         self._p = port
@@ -26,17 +26,21 @@ class Connection:
         self.on_open = None
         self.on_message = None
         self.on_close = None
+        self.debug = debug
         self._run()
 
     def request(self, endpoint: str, payload: dict = {}, callback = None) -> None:
         if self._can_send and self._ws is not None:
             id = ''.join(random.choice("abcdef0123456789") for i in range(64))
-            self._ws.send(json.dumps({
+            data = json.dumps({
                 **payload,
                 "$endpoint": endpoint,
                 "$devid": self.id,
                 "$reqid": id
-            }))
+            })
+            if self.debug:
+                print(">", data)
+            self._ws.send(data)
             if callable(callback):
                 Connection._requests[id] = callback
 
@@ -65,6 +69,8 @@ class Connection:
             self.on_open()
 
     def _on_message(self, ws, message):
+        if self.debug:
+            print("<", message)
         try:
             message = json.loads(message)
             id = message.get("$reqid", "")

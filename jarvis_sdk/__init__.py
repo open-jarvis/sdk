@@ -13,7 +13,8 @@
 * [Entity](jarvis_sdk/Entity.html)
     * [IEntity](jarvis_sdk/Entity.html#IEntity)
 * [TestSuite](jarvis_sdk/TestSuite.html)
-* [Session](jarvis_sdk/Session.html)
+* [Storage](jarvis_sdk/Storage.html)
+    * [Session](jarvis_sdk/Storage.html#Session)
 * [Api](jarvis_sdk/Api.html)
 * [Connection](jarvis_sdk/Connection.html)
     * [Highway](jarvis_sdk/Connection.html#Highway)
@@ -23,7 +24,7 @@
 from .Intent import Intent, IntentResponse, ResolvedIntentResponse, IIntentResponse, IntentTextResponse, IntentSpeechResponse, IntentCardResponse, CapturedIntentData, IntentSlotsContainer
 from .Entity import Entity, IEntity
 from .TestSuite import TestSuite
-from .Session import Session
+from .Storage import Storage, Session
 from .Api import Api
 from .Connection import Connection, Highway
 
