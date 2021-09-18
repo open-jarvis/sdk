@@ -27,6 +27,7 @@ class Connection:
         self.on_message = None
         self.on_close = None
         self.debug = debug
+        self.loop = None
         self._run()
 
     def request(self, endpoint: str, payload: dict = {}, callback = None) -> None:
@@ -50,18 +51,24 @@ class Connection:
         return _streaming_callback
 
     def _run(self):
-        def ws_in_thread(loop):
-            asyncio.set_event_loop(loop)
-            async def _run_forever():
-                self._ws = websocket.WebSocketApp(f"ws://{self._h}:{self._p}",
-                                                    on_open=self._on_open,
-                                                    on_message=self._on_message,
-                                                    on_close=self._on_close)
-                self._ws.run_forever()
-            loop.run_until_complete(_run_forever())
-        loop = asyncio.get_event_loop()
-        t = threading.Thread(target=ws_in_thread, args=(loop,))
+        self._ws = websocket.WebSocketApp(f"ws://{self._h}:{self._p}",
+                                            on_open=self._on_open,
+                                            on_message=self._on_message,
+                                            on_close=self._on_close)
+        self._ws.keep_running = True
+        t = threading.Thread(target=self._ws.run_forever)
+        t.daemon = True
         t.start()
+
+    def reconnect(self, cb=None):
+        if self._ws:
+            self._ws.keep_running = False
+        self._run()
+        self.on_open = cb
+
+    def disconnect(self):
+        if self._ws:
+            self._ws.keep_running = False
 
     def _on_open(self, ws):
         self._can_send = True
