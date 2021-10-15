@@ -9,25 +9,27 @@ import json
 
 
 class Storage:
-    FILENAME = f"{os.path.dirname(os.path.abspath(__file__))}/storage.json"
+    FILENAME = "storage.json"
+    PATH = "./"
+
 
     @staticmethod
     def get(key: str, default: any = None):
         Storage.check_file()
-        val = json.load(open(Storage.FILENAME, "r+"))
+        val = json.load(open(Storage.PATH + Storage.FILENAME, "r+"))
         return val.get(key, default)
 
     @staticmethod
     def set(key: str, value: any):
         Storage.check_file()
-        val = json.load(open(Storage.FILENAME, "r+"))
+        val = json.load(open(Storage.PATH + Storage.FILENAME, "r+"))
         val[key] = value
-        json.dump(val, open(Storage.FILENAME, "w+"))
+        json.dump(val, open(Storage.PATH + Storage.FILENAME, "w+"))
 
     @staticmethod
     def check_file():
-        if not os.path.exists(Storage.FILENAME):
-            with open(Storage.FILENAME, "w+") as f:
+        if not os.path.exists(Storage.PATH + Storage.FILENAME):
+            with open(Storage.PATH + Storage.FILENAME, "w+") as f:
                 json.dump({}, f)
 
 
