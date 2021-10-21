@@ -3,15 +3,11 @@ Copyright (c) 2021 Philipp Scheer
 """
 
 
-import copy
-import time
 import json
 import random
-import asyncio
 import traceback
 import threading
 import websocket
-from threading import Thread
 
 
 class Connection:
@@ -93,23 +89,3 @@ class Connection:
         self._can_send = False
         if callable(self.on_close):
             self.on_close(close_status_code)
-
-
-class Highway:
-    _callbacks = []
-
-    def __init__(self) -> None:
-        pass
-
-    @staticmethod
-    def on(lane: str, callback) -> None:
-        Highway._callbacks.append({
-            "lane": lane,
-            "callback": callback
-        })
-    
-    @staticmethod
-    def send(lane: str, data: any = True) -> None:
-        for cb in Highway._callbacks:
-            if cb["lane"] == lane and callable(cb["callback"]):
-                cb["callback"](data)
