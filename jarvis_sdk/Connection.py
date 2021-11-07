@@ -19,6 +19,7 @@ class Connection:
         self._p = port
         self._can_send = False
         self._ws = None
+        self.on_control_message = None
         self.on_open = None
         self.on_message = None
         self.on_close = None
@@ -76,6 +77,11 @@ class Connection:
             print("<", message)
         try:
             message = json.loads(message)
+            print(message)
+            if message.get("$control", None):
+                if callable(self.on_control_message):
+                    self.on_control_message(message)
+                return
             id = message.get("$reqid", "")
             cb = Connection._requests.get(id, None)
             if callable(cb):
