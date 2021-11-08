@@ -15,9 +15,9 @@ class AudioDevice:
 
 @dataclass
 class AudioInformation:
-    available_inputs: list[AudioDevice]
+    available_inputs: list # of AudioDevice
     default_input: int
-    available_outputs: list[AudioDevice]
+    available_outputs: list # of AudioDevice
     default_output: int
 
 
@@ -77,4 +77,4 @@ class SystemInformation:
 
     @classmethod
     def object(json: dict):
-        return SystemInformationMessage(**json)
+        return SystemInformation(**json)
