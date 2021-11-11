@@ -27,7 +27,11 @@ from .TestSuite import TestSuite
 from .Storage import Storage, Session
 from .Api import Api
 from .Connection import Connection
-from .Routing import Router
+from .Logging import Logger
+
+from .plugin.Plugin import Router, PluginServer
+from .plugin.Tasks import Task
+
 
 # TODO: add more sessions
 session = Session()
