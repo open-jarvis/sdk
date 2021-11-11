@@ -13,6 +13,18 @@ class AudioDevice:
     index: int
     name: str
 
+    def json(self) -> dict:
+        return {
+            "name": self.name,
+            "type": self.type,
+            "index": self.index,
+        }
+    
+    @classmethod
+    def object(cls, data: dict):
+        return AudioDevice(**data)
+
+
 @dataclass
 class AudioInformation:
     available_inputs: list # of AudioDevice
@@ -20,10 +32,23 @@ class AudioInformation:
     available_outputs: list # of AudioDevice
     default_output: int
 
+    timestamp: float = time.time()
+
+    def json(self) -> dict:
+        return {
+            "available_inputs": [_.json() for _ in self.available_inputs],
+            "default_input": self.default_input,
+            "available_outputs": [_.json() for _ in self.available_outputs],
+            "default_output": self.default_output,
+            "timestamp": self.timestamp
+        }
+    
+
 
 @dataclass
 class VideoInformation:
-    pass
+    def json(self) -> dict:
+        return {}
 
 
 
@@ -47,8 +72,8 @@ class Uptime:
         }
 
     @classmethod
-    def object(json: dict):
-        return Uptime(**json)
+    def object(cls, json: dict):
+        return Uptime(**json) if json is not None else None
 
 
 @dataclass
@@ -58,14 +83,19 @@ class SystemInformation:
     version: str
 
     # hardware
+    hardware_id: str
     architecture: int
     cores: int
     ram: int
     audio: AudioInformation
     # video: VideoInformation
 
+    # additional
+    timestamp: float = time.time()
+
     def json(self):
         return {
+            "hardware_id": self.hardware_id,
             "plugins": self.plugins,
             "version": self.version,
             "architecture": self.architecture,
@@ -73,8 +103,9 @@ class SystemInformation:
             "ram": self.ram,
             "audio": self.audio.json() if isinstance(self.audio, AudioInformation) else self.audio,
             # "video": self.video.json() if isinstance(self.video, VideoInformation) else self.video,
+            "timestamp": self.timestamp
         }
 
     @classmethod
-    def object(json: dict):
-        return SystemInformation(**json)
+    def object(cls, json: dict):
+        return SystemInformation(**json) if json is not None else None

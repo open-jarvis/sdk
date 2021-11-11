@@ -17,6 +17,7 @@
     * [Session](jarvis_sdk/Storage.html#Session)
 * [Api](jarvis_sdk/Api.html)
 * [Connection](jarvis_sdk/Connection.html)
+* [Router](jarvis_sdk/Routing.html)
 """
 
 
@@ -26,6 +27,7 @@ from .TestSuite import TestSuite
 from .Storage import Storage, Session
 from .Api import Api
 from .Connection import Connection
+from .Routing import Router
 
 # TODO: add more sessions
 session = Session()

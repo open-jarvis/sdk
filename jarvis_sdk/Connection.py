@@ -37,7 +37,8 @@ class Connection:
                 "$reqid": id
             })
             if self.debug:
-                print(">", data)
+                if callable(self.debug): self.debug("> " + str(data))
+                else:                    print(">", data)
             self._ws.send(data)
             if callable(callback):
                 Connection._requests[id] = callback
@@ -46,16 +47,6 @@ class Connection:
         def _streaming_callback(data):
             self.request(endpoint, data)
         return _streaming_callback
-
-    def _run(self):
-        self._ws = websocket.WebSocketApp(f"ws://{self._h}:{self._p}",
-                                            on_open=self._on_open,
-                                            on_message=self._on_message,
-                                            on_close=self._on_close)
-        self._ws.keep_running = True
-        t = threading.Thread(target=self._ws.run_forever)
-        t.daemon = True
-        t.start()
 
     def reconnect(self, cb=None):
         if self._ws:
@@ -67,6 +58,16 @@ class Connection:
         if self._ws:
             self._ws.keep_running = False
 
+    def _run(self):
+        self._ws = websocket.WebSocketApp(f"ws://{self._h}:{self._p}",
+                                            on_open=self._on_open,
+                                            on_message=self._on_message,
+                                            on_close=self._on_close)
+        self._ws.keep_running = True
+        t = threading.Thread(target=self._ws.run_forever)
+        t.daemon = True
+        t.start()
+
     def _on_open(self, ws):
         self._can_send = True
         if callable(self.on_open):
@@ -74,10 +75,10 @@ class Connection:
 
     def _on_message(self, ws, message):
         if self.debug:
-            print("<", message)
+            if callable(self.debug): self.debug("< " + str(message))
+            else:                    print("<", message)
         try:
             message = json.loads(message)
-            print(message)
             if message.get("$control", None):
                 if callable(self.on_control_message):
                     self.on_control_message(message)
