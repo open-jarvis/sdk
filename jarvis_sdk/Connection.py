@@ -13,7 +13,7 @@ import websocket
 class Connection:
     _requests = {}
 
-    def __init__(self, device_id: str, host: str = "jarvis.fipsi.at", port: int = 5522, debug: bool = False) -> None:
+    def __init__(self, device_id: str, host: str = "jarvis.fipsi.at", port: int = 5522, debug: bool = False, auto_start: bool = True) -> None:
         self.id = device_id
         self._h = host
         self._p = port
@@ -25,7 +25,8 @@ class Connection:
         self.on_close = None
         self.debug = debug
         self.loop = None
-        self._run()
+        if auto_start:
+            self._run()
 
     def request(self, endpoint: str, payload: dict = {}, callback = None) -> None:
         if self._can_send and self._ws is not None:
@@ -57,6 +58,9 @@ class Connection:
     def disconnect(self):
         if self._ws:
             self._ws.keep_running = False
+
+    def start(self):
+        self._run()
 
     def _run(self):
         self._ws = websocket.WebSocketApp(f"ws://{self._h}:{self._p}",

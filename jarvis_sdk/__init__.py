@@ -29,8 +29,9 @@ from .Api import Api
 from .Connection import Connection
 from .Logging import Logger
 
-from .plugin.Plugin import Router, PluginServer
 from .plugin.Tasks import Task
+
+from .Highway import Highway
 
 
 # TODO: add more sessions
