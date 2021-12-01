@@ -8,20 +8,24 @@ from datetime import datetime
 
 
 class Logger:
-    default_file = None
+    default = None
 
     def __init__(self, filename: str, print: bool=True) -> None:
-        Logger.default_file = filename
         self.f = open(filename, "a+")
+        self.f.write("\n" + "="*100 + "\n\n")
         self.print = print
+        self.error = self._error
+        self.info = self._info
+        self.warning = self._warning
+        Logger.default = self
 
-    def error(self, msg, **kwargs):
+    def _error(self, msg, **kwargs):
         self.writeLogLine(f"error - {msg}\n{traceback.format_exc()}", **kwargs)
 
-    def info(self, msg, **kwargs):
+    def _info(self, msg, **kwargs):
         self.writeLogLine(f"info - {msg}", **kwargs)
 
-    def warning(self, msg, **kwargs):
+    def _warning(self, msg, **kwargs):
         self.writeLogLine(f"warning - {msg}", **kwargs)
 
     def writeLogLine(self, line, **kwargs):
@@ -33,6 +37,14 @@ class Logger:
         self.f.write(line + "\n")
         self.f.flush()
     
-    @classmethod
-    def default(cls):
-        return Logger(Logger.default_file) if Logger.default_file is not None else None
+    @staticmethod
+    def error(msg, **kwargs):
+        if Logger.default: Logger.default.error(msg, **kwargs)
+
+    @staticmethod
+    def info(msg, **kwargs):
+        if Logger.default: Logger.default.info(msg, **kwargs)
+
+    @staticmethod
+    def warning(msg, **kwargs):
+        if Logger.default: Logger.default.warning(msg, **kwargs)

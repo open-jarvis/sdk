@@ -21,7 +21,7 @@
 """
 
 
-from .Intent import Intent, IntentResponse, ResolvedIntentResponse, IIntentResponse, IntentTextResponse, IntentSpeechResponse, IntentCardResponse, CapturedIntentData, IntentSlotsContainer
+from .Intent import Intent, CapturedIntentData
 from .Entity import Entity, IEntity
 from .TestSuite import TestSuite
 from .Storage import Storage, Session
