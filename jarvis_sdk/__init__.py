@@ -21,8 +21,8 @@
 """
 
 
-from .Intent import Intent, CapturedIntentData
-from .Entity import Entity, IEntity
+from .nlu.Intent import Intent, CapturedIntentData
+from .nlu.Entity import Entity, IEntity
 from .TestSuite import TestSuite
 from .Storage import Storage, Session
 from .Api import Api
@@ -32,6 +32,10 @@ from .Logging import Logger
 from .plugin.Tasks import Task
 
 from .Highway import Highway
+from .Ressources import Ressources
+
+from .Webserver import Webserver, Router
+
 
 
 # TODO: add more sessions

@@ -76,50 +76,31 @@ class CapturedIntentData:
         for k in ["input", "skill", "intent", "probability", "slots"]:
             assert k in self.data, f"Data does not have required format: '{k}' missing"
 
-    def to_json(self):
-        """Export CapturedIntentData to json string"""
+    def __dict__(self):
         return self.data
-    
-    @classmethod
-    def from_json(cls, data):
-        """Load a CapturedIntentData from JSON object
-        Example:
-        {
-            'input': 'wie wild das wetter morgen', 
-            'intent': {
-                'intentName': 'Wetter$Wetterbericht', 
-                'probability': 0.7764818831383247
-            }, 'slots': [
-                {
-                    'range': {
-                        'start': 20, 
-                        'end': 26
-                    }, 
-                    'rawValue': 'morgen', 
-                    'value': {
-                        'kind': 'Custom', 
-                        'value': 'morgen'
-                    }, 
-                    'entity': 'zeiteinheit', 
-                    'slotName': 'zeit'
-                }
-            ]
-        }
-        """
-        return cls({
-            "input": data.get("input"),
-            "skill": data.get("intent", {}).get("intentName").split("$")[0],
-            "intent": data.get("intent", {}).get("intentName").split("$")[1],
-            "probability": data.get("intent", {}).get("probability"),
-            "slots": {
-                slot.get("slotName"): {
-                    "value": slot.get("value", {}).get("value"),
-                    "raw": slot.get("rawValue"),
-                    "entity": slot.get("entity")
-                } for slot in data.get("slots", [])
-            }
-        })
 
+    def to_json(self):
+        """Export CapturedIntentData to json object"""
+        return self.data
+
+    def get_slot_value(self, slot_name, default=None):
+        """Get the slot value for a given `slot_name`, if `slot_name` could not be found, return the `default` value
+        Example:
+        ```python
+        from jarvis_sdk import Intent, CapturedIntentData
+
+        @Intent.on("Weather", "getWeather")
+        def Weather_getWeather(captured_intent_data: CapturedIntentData):
+            city = captured_intent_data.get_slot_value("city_name") # city == "New York"
+            # or shorter
+            city = captured_intent_data.slots.city_name # str or None
+        ```
+        """
+        for slot in self.slots:
+            if slot.get("slotName", None) == slot_name:
+                return slot.get("resolved", slot.get("value", {}).get("value", None))
+        return default
+  
     @property
     def skill(self) -> str:
         """Get the skill of the parsed intent, else `None`  
@@ -162,23 +143,47 @@ class CapturedIntentData:
         """
         return self.data.get("input", "")
 
-    def get_slot_value(self, slot_name, default=None):
-        """Get the slot value for a given `slot_name`, if `slot_name` could not be found, return the `default` value
-        Example:
-        ```python
-        from jarvis_sdk import Intent, CapturedIntentData
 
-        @Intent.on("Weather", "getWeather")
-        def Weather_getWeather(captured_intent_data: CapturedIntentData):
-            city = captured_intent_data.get_slot_value("city_name") # city == "New York"
-            # or shorter
-            city = captured_intent_data.slots.city_name # str or None
-        ```
+    @classmethod
+    def from_json(cls, data):
+        """Load a CapturedIntentData from JSON object
+        Example:
+        {
+            'input': 'wie wild das wetter morgen', 
+            'intent': {
+                'intentName': 'Wetter$Wetterbericht', 
+                'probability': 0.7764818831383247
+            }, 'slots': [
+                {
+                    'range': {
+                        'start': 20, 
+                        'end': 26
+                    }, 
+                    'rawValue': 'morgen', 
+                    'value': {
+                        'kind': 'Custom', 
+                        'value': 'morgen'
+                    }, 
+                    'entity': 'zeiteinheit', 
+                    'slotName': 'zeit'
+                }
+            ]
+        }
         """
-        for slot in self.slots:
-            if slot.get("slotName", None) == slot_name:
-                return slot.get("resolved", slot.get("value", {}).get("value", None))
-        return default
+        return cls({
+            "input": data.get("input"),
+            "skill": data.get("intent", {}).get("intentName").split("$")[0],
+            "intent": data.get("intent", {}).get("intentName").split("$")[1],
+            "probability": data.get("intent", {}).get("probability"),
+            "slots": {
+                slot.get("slotName"): {
+                    "value": slot.get("value", {}).get("value"),
+                    "raw": slot.get("rawValue"),
+                    "entity": slot.get("entity")
+                } for slot in data.get("slots", [])
+            }
+        })
+
 
 
 class Intent():
