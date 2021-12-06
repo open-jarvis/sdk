@@ -17,14 +17,18 @@ class Storage:
     def get(key: str, default: any = None):
         Storage.check_file()
         val = json.load(open(Storage.PATH + "/" + Storage.FILENAME, "r+"))
-        return val.get(key, default)
+        if key in val:
+            return val[key]
+        else:
+            Storage.set(key, default)
+            return default
 
     @staticmethod
     def set(key: str, value: any):
         Storage.check_file()
         val = json.load(open(Storage.PATH + "/" + Storage.FILENAME, "r+"))
         val[key] = value
-        json.dump(val, open(Storage.PATH + "/" + Storage.FILENAME, "w+"))
+        json.dump(val, open(Storage.PATH + "/" + Storage.FILENAME, "w+"), indent=4)
 
     @staticmethod
     def check_file():

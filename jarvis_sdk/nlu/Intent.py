@@ -143,7 +143,6 @@ class CapturedIntentData:
         """
         return self.data.get("input", "")
 
-
     @classmethod
     def from_json(cls, data):
         """Load a CapturedIntentData from JSON object
@@ -170,7 +169,21 @@ class CapturedIntentData:
             ]
         }
         """
-        return cls({
+        if data.get("intent", {}).get("intentName") is None:
+            return CapturedIntentData({
+                "input": data.get("input"),
+                "skill": None,
+                "intent": None,
+                "probability": data.get("intent", {}).get("probability"),
+                "slots": {
+                    slot.get("slotName"): {
+                        "value": slot.get("value", {}).get("value"),
+                        "raw": slot.get("rawValue"),
+                        "entity": slot.get("entity")
+                    } for slot in data.get("slots", [])
+                },
+            })
+        return CapturedIntentData({
             "input": data.get("input"),
             "skill": data.get("intent", {}).get("intentName").split("$")[0],
             "intent": data.get("intent", {}).get("intentName").split("$")[1],
@@ -181,7 +194,7 @@ class CapturedIntentData:
                     "raw": slot.get("rawValue"),
                     "entity": slot.get("entity")
                 } for slot in data.get("slots", [])
-            }
+            },
         })
 
 

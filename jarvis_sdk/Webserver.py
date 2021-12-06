@@ -43,7 +43,7 @@ class Server(BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = self.path[1:]
-        data = self.rfile.read(int(self.headers['Content-Length'] or 0))
+        data = self.rfile.read(int(self.headers['Content-Length'] or 0)).decode("utf-8")
         absolute = f"{Server.basedir}/{path}"
         if absolute.endswith("/"):
             absolute += "index.html"
