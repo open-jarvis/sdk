@@ -3,6 +3,10 @@ Copyright (c) 2021 Philipp Scheer
 """
 
 
+import random
+import traceback
+from .Entity import Entity, IEntity
+
 
 class Slots:
     """Internal class to simplify slot value extraction.  
@@ -203,3 +207,139 @@ class Intent:
             "slots": slots
         })
 
+
+class Intent():
+    """Whenever Jarvis captures an Intent in a spoken phrase or chat platform, 
+    you can execute some code and provide an appropriate response.  
+    You'll probably only need the `.on` method"""
+
+    _handlers = {}
+
+    @staticmethod
+    def on(skill: str, intent: str):
+        """Listen to a captured Intent.  
+        Usage:
+        ```python
+        from jarvis_sdk import Intent, IntentResponse, IntentTextResponses
+
+        @Intent.on("Weather", "getWeather")
+        def Weather_getWeather(captured_data):
+            # captured_data is an instance of `Intent`
+            # All you need to do is parse the captured data,
+            # call some API endpoints and return a response
+            return IntentResponse(
+                text = IntentTextResponse([
+                    "Temperatures will reach $temperature today.",
+                    "It'll be really $temperature_feel outside today."
+                ]).apply_values({
+                    "$temperature": "89°F",
+                    "$temperature_feel": "hot"
+                }),
+                # The text parameter is mandatory and must be an instance of IntentTextResponses
+                # If you don't want to return any text, pass an empty list to the constructor
+
+                speech = IntentSpeechResponse([
+                    "Temperatures will reach $temperature today.",
+                    "It'll be really $temperature_feel outside today."
+                ]).apply_values({
+                    "$temperature": "89°F",
+                    "$temperature_feel": "hot"
+                }), 
+                # The speech paramter is optional but recommended.
+                # If no `speech` parameter is given, the IntentTextResponse 
+                #   will be used as IntentSpeechResponse. 
+                # If you want to have different speech responses than text responses, 
+                #   you may specify them here
+
+                card = IntentCardResponse(
+                    head="Weather Report"
+                )
+                # The card parameter is optional but recommended.
+                # In the case of a weather app it makes sense to provide a IntentCardResponse
+                #   so the UI can provide some graphical response (like a weather report) 
+            )
+
+        @Intent.on("Weather", "*")
+        def Weather_all(captured_data):
+            # By using the "*" operator, a listener may be attached to:
+            # * all skills and all intents: @Intent.on("*", "*")
+            # * all skills and given intents: @Intent.on("*", "getWeather")
+            # * given skills and all intents: @Intent.on("Weather", "*")
+            # You must not return a IntentResponse object
+            # If a IntentResponse object is returned, the skill might not work as expected
+            return True
+        ```"""
+        try:
+            def decor(func):
+                def wrap(*args, **kwargs):
+                    res = func(*args, **kwargs)
+                    return res
+                id = ''.join(random.choice("0123456789abcdef") for _ in range(64))
+                while (skill, intent, id) in Intent._handlers:
+                    id = ''.join(random.choice("0123456789abcdef") for _ in range(64))
+                Intent._handlers[(skill, intent, id)] = wrap
+                return wrap
+            return decor
+        except Exception as e:
+            raise e
+
+    @staticmethod
+    def handle(intent_data: Intent):
+        skill = intent_data.skill
+        intent = intent_data.intent
+        try:
+            endpoints = Intent._get(skill, intent)
+            result = (False, None)
+            for endpoint in endpoints:
+                try:
+                    res = endpoint(intent_data)
+                    if res is not None:
+                        result = (True, res)
+                except Exception as e:
+                    traceback.print_exc()
+            return result
+        except Exception as e:
+            traceback.print_exc()
+            return (False, None)
+
+
+    @staticmethod
+    def _get(skillNameToGet, intentNameToGet):
+        """Get matching functions for Skill$intent from handlers dict,  
+        else return the default route"""
+        endpoints = []
+        for (skillName, intentName, id) in Intent._handlers:
+            endpoint = Intent._handlers[(skillName, intentName, id)]
+            if skillNameToGet == skillName or skillName == "*":
+                if intentNameToGet == intentName or intentName == "*":
+                    endpoints.append(endpoint)
+        if len(endpoints) == 0:
+            return [Intent._default_endpoint]
+        return endpoints
+
+    @staticmethod
+    def _emit(skill: str, intent: str, nlu_result: dict) -> set:
+        """Emit a Skill$Intent event with given arguments  
+        Returns a tuple with `(True|False, object result)`"""
+        raise NotImplementedError("NotImplementedError")
+        try:
+            endpoints = Intent._get(skill, intent)
+            result = None
+            captured_intent_data = Intent(nlu_result)
+            for endpoint in endpoints:
+                try:
+                    res = endpoint(captured_intent_data)
+                except Exception as e:
+                    res = e
+                    print(f"Exception occured in endpoint {skill}${intent}")
+                    traceback.print_exc()
+                if isinstance(res, IntentResponse):
+                    result = res
+            return (True, result)
+        except Exception as e:
+            return (False, str(e))
+
+    @staticmethod
+    def _default_endpoint(*args, **kwargs):
+        """This is the default endpoint and gets handled if no function was found for Intent event"""
+        raise Exception("Endpoint not found")

@@ -15,7 +15,7 @@ from jarvis_sdk import Skill
 
 @Skill.on("Weather", "getWeather")
 def Weather_getWeather(captured_data):
-    # captured_data is an instance of [`CapturedIntentData`](#CapturedIntentData)
+    # captured_data is an instance of [`Intent`](#Intent)
     # process the query in here and return a list of possible responses. The Jarvis AI will try to  
     # pick the best reply based on mood, talkactiveness and much more
     return [

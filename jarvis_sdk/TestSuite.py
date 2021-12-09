@@ -5,7 +5,7 @@ Copyright (c) 2021 Philipp Scheer
 
 import json
 import traceback
-from jarvis_sdk import IEntity, CapturedIntentData
+from jarvis_sdk import IEntity, Intent
 
 
 class TestSuite():
@@ -24,11 +24,11 @@ class TestSuite():
         printf(f"TESTING ENDPOINT {method.__name__}")
         printf(f"CAPTURED DATA")
         print(data)
-        if not isinstance(data, CapturedIntentData):
-            printf("TRANSFORMING INPUT TO CapturedIntentData")
-            data = CapturedIntentData(data)
+        if not isinstance(data, Intent):
+            printf("TRANSFORMING INPUT TO Intent")
+            data = Intent(data)
         else:
-            printf("INPUT ALREADY CapturedIntentData")
+            printf("INPUT ALREADY Intent")
         printf("DEBUG OUTPUT")
         res = method(data)
         printf("RESULT")

@@ -8,8 +8,8 @@
     * [IntentTextResponse](jarvis_sdk/Intent.html#IntentTextResponse)
     * [IntentSpeechResponse](jarvis_sdk/Intent.html#IntentSpeechResponse)
     * [IntentCardResponse](jarvis_sdk/Intent.html#IntentCardResponse)
-    * [CapturedIntentData](jarvis_sdk/Intent.html#CapturedIntentData)
-    * [IntentSlotsContainer](jarvis_sdk/Intent.html#IntentSlotsContainer)
+    * [Intent](jarvis_sdk/Intent.html#Intent)
+    * [Slots](jarvis_sdk/Intent.html#Slots)
 * [Entity](jarvis_sdk/Entity.html)
     * [IEntity](jarvis_sdk/Entity.html#IEntity)
 * [TestSuite](jarvis_sdk/TestSuite.html)
@@ -21,16 +21,18 @@
 """
 
 
-from .nlu.Intent import Intent, CapturedIntentData
-from .nlu.Entity import Entity, IEntity
+from .nlu.Intent import Intent, Slots
+# from .nlu.Entity import Entity, IEntity
+
+from .plugin.Tasks import Task
+
+from .captures.AudioCapture import AudioCapture
+
 from .TestSuite import TestSuite
 from .Storage import Storage, Session
 from .Api import Api
 from .Connection import Connection
 from .Logging import Logger
-
-from .plugin.Tasks import Task
-
 from .Highway import Highway
 from .Ressources import Ressources
 
