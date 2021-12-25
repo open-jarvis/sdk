@@ -7,7 +7,6 @@ import os
 import json
 import mimetypes
 
-from functools import wraps
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 

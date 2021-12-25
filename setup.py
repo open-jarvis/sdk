@@ -19,6 +19,8 @@ setuptools.setup(
     url="https://github.com/open-jarvis/sdk",
     packages=setuptools.find_packages(),
     install_requires=[
+        "websocket",
+        "requests"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

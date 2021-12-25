@@ -3,7 +3,6 @@ Copyright (c) 2021 Philipp Scheer
 """
 
 
-
 class Slots:
     """Internal class to simplify slot value extraction.  
     You should not call this class"""
@@ -34,7 +33,7 @@ class Slots:
 
     def __iter__(self):
         return iter(self._slots)
-
+    
 
 class Intent:
     """A wrapper around Intents classified by Jarvis NLU.  
@@ -139,6 +138,10 @@ class Intent:
         """
         return self.data.get("input", "")
 
+    @property
+    def probability(self) -> float:
+        return self.data.get("probability", None)
+
     @classmethod
     def from_json(cls, data):
         """Load a Intent from JSON object
@@ -194,7 +197,7 @@ class Intent:
         })
 
     @classmethod
-    def from_values(cls, input, skill, intent, probability, slots):
+    def from_values(cls, input: str = None, skill: str = None, intent: str = None, probability: float = None, slots: list = []):
         return Intent({
             "input": input,
             "skill": skill,
@@ -202,4 +205,157 @@ class Intent:
             "probability": probability,
             "slots": slots
         })
+    
 
+    ## Jarvis Skills
+    _skill_handlers = []
+    
+    @staticmethod
+    def on(skill, intent):
+        def decor(func):
+            Intent._skill_handlers.append({
+                "skill": skill,
+                "intent": intent,
+                "callback": func
+            })
+            def wrap(*args, **kwargs):
+                res = func(*args, **kwargs)
+                return res
+            return wrap
+        return decor
+
+    @staticmethod
+    def execute(skill, intent, audioCapture, context):
+        for el in Intent._skill_handlers:
+            if el.get("skill") == skill and el.get("intent") == intent:
+                cb = el.get("callback")
+                if callable(cb):
+                    return cb(audioCapture, context)
+        return None
+
+
+    ## Jarvis Questions
+    _question_handlers = []
+
+    @staticmethod
+    def question(skill, intent, key):
+        def decor(func):
+            Intent._question_handlers.append({
+                "skill": skill,
+                "intent": intent,
+                "key": key,
+                "callback": func
+            })
+            def wrap(*args, **kwargs):
+                res = func(*args, **kwargs)
+                return res
+            return wrap
+        return decor
+
+    @staticmethod
+    def ask(skill, intent, key, context):
+        for el in Intent._question_handlers:
+            if el.get("skill") == skill and el.get("intent") == intent and el.get("key") == key:
+                cb = el.get("callback")
+                if callable(cb):
+                    return cb(context)
+        return None
+
+
+
+    @staticmethod
+    def require(key: str, audioCapture, context, atTimestamp=None, contextKeys: list=[]):
+        # Try to get the key directly from the AudioCapture object
+        if audioCapture.intent is not None and audioCapture.intent.get_slot_value(key) is not None:
+            return audioCapture.intent.get_slot_value(key)
+
+        # Next, look into the context object, if there is a valid key
+        k = context.get(key, None, atTimestamp)
+        if k is None:
+            for ck in contextKeys:
+                k = context.get(ck, None, atTimestamp)
+                if k is not None:
+                    return k
+        else:
+            return k
+
+        # If we cannot find the data, we need to ask the user for additional information
+        if audioCapture.intent is not None:
+            # If there is an intent in the AudioCapture
+            return Intent.ask(audioCapture.intent.skill, audioCapture.intent.intent, key, context)
+        else:
+            # Else, return none. This should never be the case
+            return None # TODO: what can we do here?
+
+
+#########
+
+class IEntity():
+    def __init__(self) -> None:
+        self.data = {}
+
+    def _set_slot_data(self, slot_data: dict):
+        self.data = slot_data
+
+    def resolve(self):
+        """Resolve an entity value to be computer readable  
+        Usage:
+        ```python
+        from jarvis_sdk import Entity, IEntity
+
+        class datetime(IEntity):
+            def __init__(self) -> None:
+                super().__init__()
+
+            def resolve(self):
+                # A new `self.data` dict is now available with these values:
+                # {
+                #     "range": {
+                #         "start": 7,
+                #         "end": 17
+                #     },
+                #     "rawValue": "in 2 days",
+                #     "value": {
+                #         "kind": "Custom",
+                #         "value": "in 2 days"
+                #     },
+                #     "entity": "datetime",
+                #     "slotName": "time"
+                # }
+                # Your job is to convert this input into something machine readable like a timestamp
+                string = self.data.get("value", {}).get("value", "").lower()
+                return time.time()
+        
+        Entity.register(datetime)
+        # Don't forget to register your entity.
+        # Intent handlers (via @Intent.on()) are now able to access your entity and resolve text values
+        ```
+        """
+        pass
+
+
+class Entity():
+    """Register entities to process information generated by Jarvis NLU"""
+
+    def __init__(self) -> None:
+        pass
+
+    _entities = {}
+
+    @staticmethod
+    def register(entity_class: IEntity):
+        """Register your entity class  
+        Usage:
+        ```python
+        from jarvis_sdk import Entity, IEntity
+
+        class test(IEntity):
+            def __init__(self) -> None:
+                super().__init__()
+
+            def resolve(self):
+                return "something useful"
+        
+        Entity.register(test)
+        ```"""
+        Entity._entities[entity_class.__name__] = entity_class

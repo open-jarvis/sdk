@@ -21,7 +21,7 @@
 """
 
 
-from .nlu.Intent import Intent, Slots
+from .nlu.Intent import Intent, Slots, Entity, IEntity
 # from .nlu.Entity import Entity, IEntity
 
 from .plugin.Tasks import Task
@@ -35,9 +35,11 @@ from .Connection import Connection
 from .Logging import Logger
 from .Highway import Highway
 from .Ressources import Ressources
+from .Context import Context
 
 from .Webserver import Webserver, Router
 
+from .LocalDatabase import LocalDatabase
 
 
 # TODO: add more sessions
