@@ -41,6 +41,8 @@ from .Webserver import Webserver, Router
 
 from .LocalDatabase import LocalDatabase
 
+from .Encryption import Encryption
+
 
 # TODO: add more sessions
 session = Session()

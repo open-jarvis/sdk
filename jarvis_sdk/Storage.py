@@ -12,7 +12,6 @@ class Storage:
     FILENAME = "storage.json"
     PATH = "."
 
-
     @staticmethod
     def get(key: str, default: any = None):
         Storage.check_file()

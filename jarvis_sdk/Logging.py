@@ -10,9 +10,10 @@ from datetime import datetime
 class Logger:
     default = None
 
-    def __init__(self, filename: str, print: bool=True) -> None:
+    def __init__(self, filename: str, print: bool=True, attach: bool = False) -> None:
         self.f = open(filename, "a+")
-        self.f.write("\n" + "="*100 + "\n\n")
+        if not attach:
+            self.f.write("\n" + "="*100 + "\n\n")
         self.print = print
         self.error = self._error
         self.info = self._info
